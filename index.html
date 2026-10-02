@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍀 로또 6/45 라이브 추첨 스튜디오</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- 스튜디오 앰비언트 조명 효과 -->
+  <div class="spotlight-left"></div>
+  <div class="spotlight-right"></div>
+
+  <div class="studio-wrapper">
+    <!-- 방송 헤더 -->
+    <header class="studio-header">
+      <div class="live-indicator">
+        <div class="live-badge">
+          <span class="live-dot"></span> LIVE
+        </div>
+        <div class="title-group">
+          <h1>로또 6/45 라이브 추첨 스튜디오</h1>
+          <p>생방송 시뮬레이션 & 물리 엔진 원형 추첨 챔버</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="btn-sound-toggle" class="btn-icon-toggle" title="사운드 켜기/끄기">
+          <span id="sound-icon">🔊</span> <span id="sound-label">ON</span>
+        </button>
+        <select id="speed-select" class="speed-select" title="추첨 속도">
+          <option value="1">⏱️ 표준 속도 (1x)</option>
+          <option value="2">⚡ 빠른 속도 (2x)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- 메인 추첨 스테이지 -->
+    <main class="stage-grid">
+      <!-- 좌측: 물리 엔진 추첨 챔버 -->
+      <section class="stage-card chamber-card">
+        <div class="chamber-canvas-wrap">
+          <canvas id="chamberCanvas" width="400" height="420"></canvas>
+        </div>
+
+        <div class="machine-status" id="machine-status">
+          <span class="status-icon">🟢</span>
+          <span id="status-text">추첨기 대기 중 (준비 완료)</span>
+        </div>
+
+        <div class="machine-actions">
+          <button id="btn-live-draw" class="btn-action btn-broadcast">
+            <span>▶️</span> 실시간 방송 추첨
+          </button>
+          <button id="btn-quick-draw" class="btn-action btn-fast">
+            <span>⚡</span> 5게임 즉시 추첨
+          </button>
+          <button id="btn-reset-chamber" class="btn-action btn-sub">
+            <span>🔄</span> 추첨기 리셋 & 공 섞기
+          </button>
+        </div>
+      </section>
+
+      <!-- 우측: 실시간 추첨 전광판 & 분석 -->
+      <section class="stage-card board-card">
+        <div class="card-title-bar">
+          <h2><span>🏆</span> 추첨 결과 전광판</h2>
+          <span class="round-badge" id="round-display">제 1150회 공식 추첨</span>
+        </div>
+
+        <!-- 당첨 번호 거치대 (6개 + 보너스) -->
+        <div class="pedestal-area">
+          <div class="slots-label">당첨 번호 (Main Numbers)</div>
+          <div class="pedestal-row">
+            <div class="slot-socket" id="slot-0"><span class="socket-num">1</span></div>
+            <div class="slot-socket" id="slot-1"><span class="socket-num">2</span></div>
+            <div class="slot-socket" id="slot-2"><span class="socket-num">3</span></div>
+            <div class="slot-socket" id="slot-3"><span class="socket-num">4</span></div>
+            <div class="slot-socket" id="slot-4"><span class="socket-num">5</span></div>
+            <div class="slot-socket" id="slot-5"><span class="socket-num">6</span></div>
+            <span class="plus-divider">+</span>
+            <div class="bonus-wrap">
+              <div class="slot-socket" id="slot-bonus"></div>
+              <span class="bonus-tag">보너스</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 실시간 라이브 자막 피드 -->
+        <div class="live-ticker" id="live-ticker">
+          🎙️ "추첨 시작 버튼을 누르면 송풍기가 가동되며 추첨이 진행됩니다."
+        </div>
+
+        <!-- 실시간 통계 분석 패널 -->
+        <div class="stats-panel">
+          <div class="stats-title">실시간 번호 분석 (당첨 6개 기준)</div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-label">번호 총합 (Sum)</div>
+              <div class="stat-val" id="stat-sum">-</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">홀 : 짝 비율</div>
+              <div class="stat-val" id="stat-odd-even">-</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">고 : 저 비율 (23↑:22↓)</div>
+              <div class="stat-val" id="stat-high-low">-</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 하단 탭 영역: 영수증 슬립 vs 색상 통계 -->
+    <section class="stage-card lower-section">
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-receipt">
+          <span>🧾</span> 로또 복권 영수증 (5게임)
+        </button>
+        <button class="tab-btn" data-tab="tab-legend">
+          <span>🎨</span> 공 색상 기준 & 가이드
+        </button>
+      </div>
+
+      <!-- 탭 1: 로또 영수증 -->
+      <div class="tab-content active" id="tab-receipt">
+        <div class="receipt-wrapper">
+          <div class="lotto-slip" id="lotto-slip">
+            <div class="slip-header">
+              <div class="slip-logo">동행복권 LOTTO 6/45</div>
+              <div class="slip-round" id="slip-round-text">제 1150 회</div>
+              <div class="slip-meta">
+                <span id="slip-date">발행일: 2026/10/01 (목) 13:00</span>
+                <span>금액: ₩5,000</span>
+              </div>
+            </div>
+
+            <div class="slip-games" id="slip-games-list">
+              <!-- JS로 5게임 렌더링 -->
+            </div>
+
+            <div class="slip-barcode-area">
+              <div class="fake-barcode"></div>
+              <div class="slip-barcode-num" id="slip-barcode-num">82491 58201 94285 20481 05819</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slip-actions">
+          <button id="btn-copy-slip" class="btn-action btn-fast">
+            <span>📋</span> 5게임 번호 복사
+          </button>
+        </div>
+      </div>
+
+      <!-- 탭 2: 색상 기준 -->
+      <div class="tab-content" id="tab-legend">
+        <div class="legend-panel">
+          <div class="legend-items">
+            <div class="legend-item"><span class="color-dot ball-yellow"></span> 1~10 (노란색)</div>
+            <div class="legend-item"><span class="color-dot ball-blue"></span> 11~20 (파란색)</div>
+            <div class="legend-item"><span class="color-dot ball-red"></span> 21~30 (빨간색)</div>
+            <div class="legend-item"><span class="color-dot ball-gray"></span> 31~40 (회색)</div>
+            <div class="legend-item"><span class="color-dot ball-green"></span> 41~45 (녹색)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 토스트 알림 메시지 -->
+  <div id="toast" class="toast"></div>
+
+  <!-- 스크립트 순차 로드 -->
+  <script src="audio.js"></script>
+  <script src="physics.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
